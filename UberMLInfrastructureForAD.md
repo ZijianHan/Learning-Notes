@@ -108,3 +108,33 @@ Each layer shows on left involves generating 3 artifacts:
 Such deep dependencies brings particular challenge for CD.
 
 ## VerCD for Uber ATG
+VerCD is a set of tools and microservices, to provide versioning and continuous delivery for Ml code and artifacts for Uber's AD software. It's a platform with well integration on other components to empower existing orchestrators and guarantee the smooth end-to-end ML workflow.
+
+VerCD offers a metadata service that tracks all dependencies of each ML compenents, include not only code but also data and model artifacts. This will ensure that ML artifacts are always reproducible and traceable for comparing new experiments against a historical baseline or track down bugs.
+### VerCD system architecture
+The platform considers both experimental(process functions to build datasets, train models and run metrics) and production workflow(CD/CD driven by an orchestrator). So it must have interface for both humans and machines, for which we chose a REST APU with Python library bindings, show as below 2 figures.
+[ATG_ML_platform_figure-07.png] VerCD consists of a version and dependency metadata service, and an orchestrator service. We use stock frameworks such as Flask, SQLAlchemy, MySQL, and Jenkins but augment their functionality with ATG-specific integrations.
+
+VerCD is a set of separate microservices, architecture at Uber (https://eng.uber.com/building-tincup-microservice-implementation/), where each microservice is responsible for a function, so the system can easily scale. For CD/CI workflow, it's linear and fixed, while for experimental workflow it's more flexible.
+
+#### Version and Dependency Metadata Service
+[ATG_ML_platform_figure-metadataservice.png]
+The Version and Dependency Metadata Service has individual endpoints for data set building, model training, and metrics computation. The REST API is a Flask and SQLAlchemy app, backed by MySQL to hold the dependency metadata. The yellow API handlers and data access layers were designed for ATG-specific use cases.
+#### Orchestrator Service
+[ATG_ML_platform_figure-orchestratorservice.png]
+VerCD’s Orchestrator Service manages the workflow pipelines for building data sets, training models, and computing metrics. It is comprised of an off-the-shelf Jenkins distribution, augmented with our own ATG-specific integrations (yellow) that give the orchestrator the ability to interact with external ATG systems.
+
+#### Example workflow
+Workflow: dependencies of any dataset, model or metric builds are registered with VerCD, which manages the infomation in a database backend. Then use a stock Jenkins orchestrator to do regular builds, and augment the function by providing connectors and integration code so it can interpret dependency metadata and operate ATG-specific systems (like call to build a runtime for testing, interact with code repo, create images with DL or Apache Spark lib, replicating datasets in between data centers and cloud, etc.).
+
+For example: registering a new data set
+
+### Microservice APIs
+
+#### Data set service API
+
+#### Model service API
+
+#### Metrics service API
+
+### Data set and model onboarding and results
